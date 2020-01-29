@@ -7,7 +7,8 @@ import paho.mqtt.client as mqtt
 import time
 import configparser
 import json
-from pymongo import MongoClient 
+from pymongo import MongoClient
+from bson.json_util import dumps
 
  #from array import *
 
@@ -38,15 +39,18 @@ mongo_database_name = config.get('mongo', 'mongo.database')
 mongo_port_no = int(config.get('mongo', 'mongo.port_no'))
 mongo_host = config.get('mongo', 'mongo.host')
 
+done='{\"value\":\"done\"}'
 #######################################################################################
 
-#variables
+# Initialization routine clear database collections if any
 
-topic1=0
-topic2=0
-topic3=0
-topic4=0
-
+# delete collection connected_devices
+mongoclient = MongoClient(mongo_host, mongo_port_no)
+mydb = mongoclient[mongo_database_name]
+mycol=mydb["connected_devices"]
+x = mycol.delete_many({})
+print(x.deleted_count, " documents deleted from collection condevs.") 
+mongoclient.close()
 
 
 ########################################################################################
@@ -88,14 +92,32 @@ def on_message(client, userdata, msg):
 		
 		# extract the message from JSON and check type
 		parsed_json = parseJson(message_string)
-		if(parsed_json['type'] == 'mobile'):
-			client.publish('all', 'send your device info')
-			break
-		#print(parsed_json['name'])
 		mongoclient = MongoClient(mongo_host, mongo_port_no)
 		mydb = mongoclient[mongo_database_name]
-		mydb.config.insert_one(parsed_json)
-		client.publish('mobile', message_string)
+		#mycol=mydb["condevs"]
+		
+		if(parsed_json['type'] == 'mobile'):
+			#extract collection convs and send all documents one by one and at last donedb
+			print("Requested by mobile device")
+			print("publishing to mobile")
+			for x in mydb.connected_devices.find():
+							
+				client.publish('mobile',str(x))
+				
+			client.publish('mobile',done)
+
+		else:
+			print("Not a mobile device")
+			print("publishing to mobile")
+			client.publish('mobile', message_string)
+		#print(parsed_json['name'])
+		#mongoclient = MongoClient(mongo_host, mongo_port_no)
+		#mydb = mongoclient[mongo_database_name]
+		mydb.connected_devices.insert_one(parsed_json)
+		mongoclient.close()
+
+		#publish to mobile whenever new device enters in system
+
 
     # The message itself is stored in the msg variable
     # and details about who sent it are stored in userdata
