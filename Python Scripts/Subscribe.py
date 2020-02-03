@@ -6,6 +6,7 @@ Written for my Instructable - "How to use MQTT with the Raspberry Pi and ESP8266
 import paho.mqtt.client as mqtt
 import time
 import configparser
+import json
 
 
 ######################################################################################
@@ -36,27 +37,66 @@ client = mqtt.Client()
 # Set the username and password for the MQTT client
 client.username_pw_set(raspi_uname, raspi_pass)
 
-
+# function() parseJson - returns parsed json
+def parseJson(message_string):
+	try:
+		print(message_string)
+		parsed_json = json.loads(message_string)
+		return parsed_json
+	except Exception as ex:
+		print('The error of the type {0} has occured!'.format(type(ex).__name__))
 
 # These functions handle what happens when the MQTT client connects
 # to the broker, and what happens then the topic receives a message
-def on_connect(client, userdata, flags, rc):
-    # rc is the error code returned when connecting to the broker
-    print ("Connected!", str(rc))
+def on_connect(client, userdata, flags, rc):	
+	# rc is the error code returned when connecting to the broker
+	print ("Connected!", str(rc))
     
     # Once the client has connected to the broker, subscribe to the topic
-    client.subscribe(mqtt_topic)
-    client.subscribe("led1status")	
-    client.subscribe("all")
+	client.subscribe("led1")
+	client.subscribe("led2")
+	client.subscribe("led1status")	
+	client.subscribe("mobile")
 
-    print("Subscription to", "led1", "successful!"); 
+
+
+	print("Subscription to", "led1", "successful!")
+
     
 def on_message(client, userdata, msg):
-    # This function is called everytime the topic is published to.
-    # If you want to check each message, and do something depending on
-    # the content, the code to do this should be run in this function
-    
-    print ("Topic: ", msg.topic + "\nMessage: " + str(msg.payload))
+	# This function is called everytime the topic is published to.
+	# If you want to check each message, and do something depending on
+	# the content, the code to do this should be run in this function
+
+	message_string = msg.payload.decode('utf-8')    
+	topic = msg.topic
+	#client.publish("conf", "dsfds")	
+
+	print()
+	#print ("Topic: ", msg.topic + "\nMessage: " + message_string)
+
+
+	if msg.topic == "led1":
+		print('Inside led1')
+
+		# check if payload is containing the field send equals true
+		parsed_message = parseJson(message_string)
+		if parsed_message["send"] == "true":
+			time.sleep(1)
+			client.publish('conf', '{"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC123", "topic":"led1"}')
+			print('published message to led1')
+
+
+	if msg.topic == 'led2':
+		print('Inside led2')
+		# check if payload is containing the field send equals true
+		print(json.loads(message_string))
+
+		parsed_message = parseJson(message_string)
+		if parsed_message["send"] == "true":
+			time.sleep(1)
+			client.publish('conf', '{"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC456", "topic":"led2"}')
+			print('published message to led2')
     
     # The message itself is stored in the msg variable
     # and details about who sent it are stored in userdata
@@ -71,6 +111,8 @@ client.on_message = on_message
 # 1883 is the listener port that the MQTT broker is using
 
 client.connect(local_ip, local_port_no)
+
+
 
 #print("Connected")
 

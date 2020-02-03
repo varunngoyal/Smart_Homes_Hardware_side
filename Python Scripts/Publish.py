@@ -39,9 +39,10 @@ client.username_pw_set(raspi_uname, raspi_pass)
 
 # Once everything has been set up, we can (finally) connect to the broker
 # 1883 is the listener port that the MQTT broker is using
-client.connect(local_ip, local_port_no)
+
 
 while True:
+    client.connect(local_ip, local_port_no)
     #sensor_data = [read_temp(), read_humidity(), read_pressure()]
     """
     client.publish("led1", "1024")
@@ -51,13 +52,16 @@ while True:
     print("LED OFF")
     time.sleep(5)
     """
-    topic_name = input("Enter the topic name: ") 
-    message = input("What is your message: ")
+    #topic_name = input("Enter the topic name: ") 
+    topic_name = 'actuator'
+    message = '{"devicename":"Redmi-note-4", "topic":"led1", "type":"led", "company":"Redmi", "uid":"QWE123", "message":"ON","start":"0","end":"0"}'
+    #message = input("What is your message: ")
     print()
     print("topic:", topic_name, "message:",message)
     print()
     print()	
     client.publish(topic_name, message)
+    input()
     
 
 # Once we have told the client to connect, let the client object run itself

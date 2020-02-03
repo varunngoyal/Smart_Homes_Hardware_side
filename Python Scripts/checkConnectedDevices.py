@@ -1,17 +1,9 @@
-"""
-Python MQTT Subscription client
-Thomas Varnish (https://github.com/tvarnish), (https://www.instructables.com/member/Tango172)
-Written for my Instructable - "How to use MQTT with the Raspberry Pi and ESP8266"
-"""
 import paho.mqtt.client as mqtt
 import time
 import configparser
 import json
 from pymongo import MongoClient 
 from bson.json_util import dumps
-
-
- #from array import *
 
 ######################################################################################
 #------------------ALL THE CONFIGURATIONS---------------------------------------------
@@ -42,42 +34,33 @@ mongo_host = config.get('mongo', 'mongo.host')
 
 #######################################################################################
 
-#variables
-
-topic1=0
-topic2=0
-topic3=0
-topic4=0
-
-
-
-########################################################################################
 #Listen to clients who want to configure themselves
 
 client = mqtt.Client()
 # Set the username and password for the MQTT client
 client.username_pw_set(raspi_uname, raspi_pass)
 
+
 # function() parseJson - returns parsed json
 def parsetoJson(message_string):
 	try:
+		print(message_string)
 		parsed_json = json.loads(message_string)
 		return parsed_json
-	except Exception:
-		print('Error parsing json message!')
-
+	except Exception as ex:
+		print('The error of the type {0} has occured!'.format(type(ex).__name__))
 
 
 # These functions handle what happens when the MQTT client connects
 # to the broker, and what happens then the topic receives a message
 def on_connect(client, userdata, flags, rc):
     # rc is the error code returned when connecting to the broker
-    print ("Connected!", str(rc))
+	print ("Connected!", str(rc))
 	# Once the client has connected to the broker, subscribe to the topic
     #client1.subscribe(mqtt_topic)
-    client.subscribe("conf",2)			#subscriing multiple topics
+	client.subscribe("conf")			#subscriing multiple topics
 
-    print("Subscription to", "conf", "successful!"); 
+	print("Subscription to", "conf", "successful!")
     
 def on_message(client, userdata, msg):
     # This function is called everytime the topic is published to.
@@ -86,40 +69,13 @@ def on_message(client, userdata, msg):
 	message_string = msg.payload.decode('utf-8')
 
 	print ("Topic: ", msg.topic + "\nMessage: " + message_string)
+	if msg.topic == 'conf':
+		parsed_msg = parsetoJson(message_string)
 
-	if msg.topic == 'conf' and message_string[0] == '{':
-		
-		# extract the message from JSON and check type
-		parsed_json = parsetoJson(message_string)
-		if(parsed_json['type'] == 'mobile'):
-			try:
-			# fetch from mongo and send everything to mobile
-				mongoclient = MongoClient(mongo_host, mongo_port_no)
-				print('mongoclient:', mongo_host, mongo_port_no)
-				mydb = mongoclient[mongo_database_name]	
-
-				device_topic = parsed_json['topic']	#on this topic, message is published
-
-				print("device topic search results::::",mydb.connected_devices.find({"topic": device_topic}))
-				#if mydb.connected_devices.find({"topic": device_topic}) == None:
-				#	print('Inserting mobile device for the first time in connected_devices..')
-					# inserting the mobile also in connected_devices	
-				#	mydb.connected_devices.insert_one(parsed_json)	
-
-				print('database:',mydb)
-				for x in mydb.connected_devices.find():
-					print("Publishing for mobile initialization...",dumps(x))
-					client.publish(device_topic, dumps(x))
-			except Exception as ex:
-				print('Error connecting to mongodb! {0}'.format(type(ex).__name__))
 		mongoclient = MongoClient(mongo_host, mongo_port_no)
 		mydb = mongoclient[mongo_database_name]
-		mydb.connected_devices.update_one(
-        	{"topic":device_topic},
-        	{
-            	"$set": parsed_json,
-        	},
-        upsert=True)
+		mydb.connected_devices.insert_one(parsed_msg)
+
 
     # The message itself is stored in the msg variable
     # and details about who sent it are stored in userdata
@@ -134,8 +90,49 @@ client.on_message = on_message
 # 1883 is the listener port that the MQTT broker is using
 client.connect(local_ip, local_port_no)
 
-#print ("Topic: ", msg.topic + "\nMessage: " + str(msg.payload))
-#client.publish("led1", "0")
+while True:
+
+	# connect to mongo
+	mongoclient = MongoClient(mongo_host, mongo_port_no)
+	mydb = mongoclient[mongo_database_name]
+	connected_devices = mydb["connected_devices"]
+
+	print('mongo client connected to (',mongo_host,',',mongo_port_no,')')
+	
+
+	#mydb.temp.delete_many({}) # delete all previous records from temp
+
+	# get topics from mongodb
+	topics = []
+	for x in mydb.connected_devices.find():
+		x = dumps(x)
+		x = json.loads(x)
+		print(x)
+		del x['_id']
+		topics.append(x['topic'])
+		#mydb.temp.insert_one(x)
+		print(x, "inserted into temp successfully!")
+
+	print(topics)
+
+	x = connected_devices.delete_many({})
+	print(x.deleted_count, " documents deleted.")
+
+	# send request message on every topic
+	for topic in topics:
+		time.sleep(1)
+		client.publish(topic, '{"send":"true"}')
+		print("Published check status message to "+topic)
+	time.sleep(30)
+#print('published message')
+#while True:
+#	time.sleep(2)
+#	print('2 seconds passed...')
+#	client.publish('led1', '{"send": "true"}')
+#	print('published to led')
+
+
+
 """
 while True:
     #sensor_data = [read_temp(), read_humidity(), read_pressure()]
@@ -152,11 +149,9 @@ client.disconnect()
 
 #################################################################################################
 """
-{"company":"samsung", "type":"mobile","modelno":"567890", "uid":"ABC456", "topic":"mobile1"}
+db.connected_devices.insertOne({"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC123", "topic":"led1"})
+db.connected_devices.insertOne({"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC456", "topic":"led2"})
+
 
 """
-
-
-
-
 

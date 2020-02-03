@@ -1,8 +1,3 @@
-"""
-Python MQTT Subscription client
-Thomas Varnish (https://github.com/tvarnish), (https://www.instructables.com/member/Tango172)
-Written for my Instructable - "How to use MQTT with the Raspberry Pi and ESP8266"
-"""
 import paho.mqtt.client as mqtt
 import time
 import configparser
@@ -42,16 +37,6 @@ mongo_host = config.get('mongo', 'mongo.host')
 
 #######################################################################################
 
-#variables
-
-topic1=0
-topic2=0
-topic3=0
-topic4=0
-
-
-
-########################################################################################
 #Listen to clients who want to configure themselves
 
 client = mqtt.Client()
@@ -63,8 +48,8 @@ def parsetoJson(message_string):
 	try:
 		parsed_json = json.loads(message_string)
 		return parsed_json
-	except Exception:
-		print('Error parsing json message!')
+	except Exception as x:
+		print('Error parsing json message: {0}'.format(type(x).__name__))
 
 
 
@@ -75,9 +60,9 @@ def on_connect(client, userdata, flags, rc):
     print ("Connected!", str(rc))
 	# Once the client has connected to the broker, subscribe to the topic
     #client1.subscribe(mqtt_topic)
-    client.subscribe("conf",2)			#subscriing multiple topics
+    client.subscribe("actuator",2)			#subscriing multiple topics
 
-    print("Subscription to", "conf", "successful!"); 
+    print("Subscription to", "actuator", "successful!"); 
     
 def on_message(client, userdata, msg):
     # This function is called everytime the topic is published to.
@@ -87,39 +72,56 @@ def on_message(client, userdata, msg):
 
 	print ("Topic: ", msg.topic + "\nMessage: " + message_string)
 
-	if msg.topic == 'conf' and message_string[0] == '{':
-		
-		# extract the message from JSON and check type
-		parsed_json = parsetoJson(message_string)
-		if(parsed_json['type'] == 'mobile'):
-			try:
-			# fetch from mongo and send everything to mobile
-				mongoclient = MongoClient(mongo_host, mongo_port_no)
-				print('mongoclient:', mongo_host, mongo_port_no)
-				mydb = mongoclient[mongo_database_name]	
+	if msg.topic == 'actuator':
+		# 1 it forwards the message to respective actuator
+		print('Doing 1')
 
-				device_topic = parsed_json['topic']	#on this topic, message is published
+		json_message = parsetoJson(message_string)
+		actuator_topic = json_message['topic']
+		actuator_message = json_message['message']
+		client.publish(actuator_topic, actuator_message)
 
-				print("device topic search results::::",mydb.connected_devices.find({"topic": device_topic}))
-				#if mydb.connected_devices.find({"topic": device_topic}) == None:
-				#	print('Inserting mobile device for the first time in connected_devices..')
-					# inserting the mobile also in connected_devices	
-				#	mydb.connected_devices.insert_one(parsed_json)	
 
-				print('database:',mydb)
-				for x in mydb.connected_devices.find():
-					print("Publishing for mobile initialization...",dumps(x))
-					client.publish(device_topic, dumps(x))
-			except Exception as ex:
-				print('Error connecting to mongodb! {0}'.format(type(ex).__name__))
 		mongoclient = MongoClient(mongo_host, mongo_port_no)
 		mydb = mongoclient[mongo_database_name]
-		mydb.connected_devices.update_one(
-        	{"topic":device_topic},
-        	{
-            	"$set": parsed_json,
-        	},
-        upsert=True)
+		
+		myquery = { "topic": actuator_topic }
+		newvalues = { "$set": {"last_message":actuator_message, "start": time.time()} }
+
+
+		# 4 take last message out of connected_devices and save on session collection
+		x=mydb.connected_devices.find_one({ "topic": actuator_topic })
+		print('topic',actuator_topic,"found in the connected devices")
+		print(x)
+		print(x!=None)
+		if x!=None:
+			x = parsetoJson(dumps(x))
+			print("parsed x: ",x)
+			# append current time and end time
+			
+			x['end'] = str(time.time())
+			del x['_id']
+			print('x to be inserted: ',x)
+			db.session.insert_one(x)
+		else:
+			print("Record for device not found")
+
+
+		# 2 it updates the connected_devices with last message
+		print('Doing 2')
+		mydb.connected_devices.update_one(myquery, newvalues)
+		#'{"topic":"led1", "message":"ON", "from"="mobile1"}'
+		# logging the message as it is 
+
+		# 3 it inserts log message to actuator
+		print('Doing 3')
+		mydb.actuator.insert_one(json_message)
+
+
+		
+
+
+
 
     # The message itself is stored in the msg variable
     # and details about who sent it are stored in userdata
@@ -155,8 +157,4 @@ client.disconnect()
 {"company":"samsung", "type":"mobile","modelno":"567890", "uid":"ABC456", "topic":"mobile1"}
 
 """
-
-
-
-
 
