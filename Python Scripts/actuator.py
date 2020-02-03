@@ -43,6 +43,11 @@ client = mqtt.Client()
 # Set the username and password for the MQTT client
 client.username_pw_set(raspi_uname, raspi_pass)
 
+
+mongoclient = MongoClient(mongo_host, mongo_port_no)
+mydb = mongoclient[mongo_database_name]
+mydb.session.drop()
+mydb.actuator.drop()
 # function() parseJson - returns parsed json
 def parsetoJson(message_string):
 	try:
@@ -73,51 +78,49 @@ def on_message(client, userdata, msg):
 	print ("Topic: ", msg.topic + "\nMessage: " + message_string)
 
 	if msg.topic == 'actuator':
-		# 1 it forwards the message to respective actuator
+		# 1a it forwards the message to respective actuator
 		print('Doing 1')
-
 		json_message = parsetoJson(message_string)
 		actuator_topic = json_message['topic']
 		actuator_message = json_message['message']
 		client.publish(actuator_topic, actuator_message)
-
-
-		mongoclient = MongoClient(mongo_host, mongo_port_no)
-		mydb = mongoclient[mongo_database_name]
+		# 1b if success/ack comes from device forward the message to all mobile devices
+			# just check if connected
 		
-		myquery = { "topic": actuator_topic }
-		newvalues = { "$set": {"last_message":actuator_message, "start": time.time()} }
 
 
-		# 4 take last message out of connected_devices and save on session collection
+		# 2 take last message out of connected_devices and save on session collection
 		x=mydb.connected_devices.find_one({ "topic": actuator_topic })
 		print('topic',actuator_topic,"found in the connected devices")
 		print(x)
 		print(x!=None)
 		if x!=None:
-			x = parsetoJson(dumps(x))
-			print("parsed x: ",x)
+			y = parsetoJson(dumps(x))
+			print("parsed x : ",y)
 			# append current time and end time
-			
-			x['end'] = str(time.time())
-			del x['_id']
-			print('x to be inserted: ',x)
-			db.session.insert_one(x)
+			y['_id']="A"
+			del y['_id']
+			y['end'] = time.time()
+			#y['message']="hello"
+			#print('x to be inserted: ',x)
+			k=mydb.session.insert_one(y)	##dont know why it was inserting record twice
+			print('Printing k',k)
 		else:
 			print("Record for device not found")
 
-
-		# 2 it updates the connected_devices with last message
+		# 3 it updates the connected_devices with last message
 		print('Doing 2')
+		myquery = { "topic": actuator_topic }
+		newvalues = { "$set": {"last_message":actuator_message, "start": time.time()} }
 		mydb.connected_devices.update_one(myquery, newvalues)
 		#'{"topic":"led1", "message":"ON", "from"="mobile1"}'
 		# logging the message as it is 
 
-		# 3 it inserts log message to actuator
+		# 4 it inserts log message to actuator
 		print('Doing 3')
 		mydb.actuator.insert_one(json_message)
-
-
+		
+		
 		
 
 
