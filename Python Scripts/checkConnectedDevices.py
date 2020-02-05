@@ -69,13 +69,16 @@ def on_message(client, userdata, msg):
 	message_string = msg.payload.decode('utf-8')
 
 	print ("Topic: ", msg.topic + "\nMessage: " + message_string)
+	"""	
+	# code for inserting the device into connected_devices if response came from the request
+
 	if msg.topic == 'conf':
 		parsed_msg = parsetoJson(message_string)
 
 		mongoclient = MongoClient(mongo_host, mongo_port_no)
 		mydb = mongoclient[mongo_database_name]
 		mydb.connected_devices.insert_one(parsed_msg)
-
+	"""
 
     # The message itself is stored in the msg variable
     # and details about who sent it are stored in userdata
@@ -100,7 +103,7 @@ while True:
 	print('mongo client connected to (',mongo_host,',',mongo_port_no,')')
 	
 
-	#mydb.temp.delete_many({}) # delete all previous records from temp
+	# mydb.temp.delete_many({}) # delete all previous records from temp
 
 	# get topics from mongodb
 	topics = []
@@ -120,7 +123,7 @@ while True:
 
 	# send request message on every topic
 	for topic in topics:
-		time.sleep(1)
+		time.sleep(0.1)
 		client.publish(topic, '{"send":"true"}')
 		print("Published check status message to "+topic)
 	time.sleep(30)
@@ -151,7 +154,5 @@ client.disconnect()
 """
 db.connected_devices.insertOne({"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC123", "topic":"led1"})
 db.connected_devices.insertOne({"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC456", "topic":"led2"})
-
-
 """
 
