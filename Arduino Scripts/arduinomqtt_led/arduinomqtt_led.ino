@@ -19,7 +19,7 @@ boolean connectioWasAlive = true;
 const char *mqtt_user = "ghleymma";
 const char *mqtt_pass = "jmvoCCetDGiy";*/
 
-const char* mqtt_server = "192.168.1.104";
+const char* mqtt_server = "192.168.1.103";
 const char* mqtt_topic = "led1";
 const char* mqtt_user = "pi";
 const char* mqtt_pass = "mike";
@@ -76,9 +76,12 @@ void reconnect() {
       clientId += String(random(0xffff), HEX);
 
       if(client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
-        Serial.println("connected");
+        Serial.print("connected to mqtt server ");
+        Serial.println(mqtt_server);
       } else {
-        Serial.print("failed");
+        Serial.print("reconnect to mqtt server failed: ");
+        Serial.println(mqtt_server);
+
         delay(2000);
       }
   }
@@ -97,22 +100,42 @@ void callback(char* topic, byte* payload, unsigned int length) {
   //payloadstr1[0] = 'a';
   //payloadstr1[1] = '\0';
   //Serial.println(payloadstr1);
+  int i;
+  Serial.print("[");
   for(i=0;i< length;i++) {
 
-  int i;
     //Serial.print((char)payload[i]);
     payloadstr[i] = (char)payload[i];
-    
+   Serial.print(payloadstr[i]);
   }
+  Serial.println("]"); 
+
   payloadstr[i] = '\0';
 
+  //convert char array to json
+  StaticJsonDocument<300> doc;
 
+  deserializeJson(doc, payloadstr);
+  /*
+  char sendvalue[100];
+  strcpy(sendvalue, doc["send"]);
+  Serial.println(sendvalue);
+  */
+  //if send is true from check status code, then send device info
+  if(strcmp(doc["send"],"true") == 0) {
+    delay(100);
+    client.publish("conf", "{\"company\":\"samsung\", \"type\":\"led\",\"modelno\":\"123456\", \"uid\":\"ABC123\", \"topic\":\"led1\"}");
+    Serial.println("device information published on request to conf!");
+  }
+  
+
+    /*
     int payloadint = atoi(payloadstr);
 
     analogWrite(O_PIN, 1024 - payloadint);
 
     Serial.println(1024 - payloadint);
-
+    */
   //Serial.println();
   //Serial.println(payloadstr1);
 
@@ -150,17 +173,6 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
 
-  /*DynamicJsonDocument doc(1024);
-
-  doc["sensor"] = "gps";
-  doc["time"]   = 1351824120;
-
-  JsonArray data = doc.createNestedArray("data");
-  data.add(48.756080);
-  data.add(2.302038);*/
-
-
-
   digitalWrite(O_PIN, LOW);
   delay(100);
   digitalWrite(O_PIN, HIGH);
@@ -177,6 +189,9 @@ void setup() {
   client.setCallback(callback);
   reconnect();
 
+
+  //publishing status of device to topic at startup
+  //********************************************************************8
   StaticJsonDocument<300> doc;
  
   doc["type"] = "led";
@@ -195,16 +210,6 @@ void setup() {
   char JSONmessageBuffer[200];
   //doc.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
   serializeJson(doc, JSONmessageBuffer);
-  Serial.printl  JsonArray values = doc.createNestedArray("values");
-
-  Serial.println("hello");
-  values.add(20);
-  values.add(21);
-  values.add(23);
-  
-  char JSONmessageBuffer[200];
-  //doc.printTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-  serializeJson(doc, JSONmessageBuffer);
   Serial.println("Sending message to MQTT topic..");
   Serial.println(JSONmessageBuffer);
 
@@ -214,18 +219,11 @@ void setup() {
     Serial.println("Error sending message");
   }
 
-  
-  Serial.println("Hello close!"n("Sending message to MQTT topic..");
-  Serial.println(JSONmessageBuffer);
-
-    if (client.publish("led1status", JSONmessageBuffer) == true) {
-    Serial.println("Success sending message");
-  } else {
-    Serial.println("Error sending message");
-  }
-
-  
+    //********************************************************************8
+    client.publish("conf", "{\"company\":\"samsung\", \"type\":\"led\",\"modelno\":\"123456\", \"uid\":\"ABC123\", \"topic\":\"led1\"}");
+    Serial.println("device information published on request to conf!");
   Serial.println("Hello close!");
+  //subscribing to various topics
   if(client.subscribe("led1", 0) == true)
   {
     Serial.println("subscription to led1 successful!"); 
@@ -248,8 +246,7 @@ void loop() {
     reconnect();
   }
   client.loop();
-  
-    
+
   //digitalWrite(LED_BUILTIN, LOW);
   //delay(5000);
   //digitalWrite(LED_BUILTIN, HIGH);
