@@ -82,7 +82,7 @@ def on_message(client, userdata, msg):
 		# check if payload is containing the field send equals true
 		parsed_message = parseJson(message_string)
 		if parsed_message["send"] == "true":
-			time.sleep(1)
+			time.sleep(0.1)
 			client.publish('conf', '{"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC123", "topic":"led1"}')
 			print('published message to led1')
 

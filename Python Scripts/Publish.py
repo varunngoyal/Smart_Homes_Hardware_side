@@ -53,8 +53,8 @@ while True:
     time.sleep(5)
     """
     #topic_name = input("Enter the topic name: ") 
-    topic_name = 'actuator'
-    message = '{"devicename":"Redmi-note-4", "topic":"led1", "type":"led", "company":"Redmi", "uid":"QWE123", "message":"ON","start":"0","end":"0"}'
+    topic_name = 'led1'
+    message = '{"send":"true"}'
     #message = input("What is your message: ")
     print()
     print("topic:", topic_name, "message:",message)
@@ -67,3 +67,11 @@ while True:
 # Once we have told the client to connect, let the client object run itself
 client.loop_forever()
 client.disconnect()
+
+"""
+    topic_name = 'actuator'
+    message = '{"devicename":"Redmi-note-4", "topic":"led1", "type":"led", "company":"Redmi", "uid":"QWE123", "message":"ON","start":"0","end":"0"}'
+
+
+
+"""
