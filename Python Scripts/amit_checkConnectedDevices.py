@@ -112,9 +112,11 @@ def on_message2(client, userdata, msg):
 	message_string = msg.payload.decode('utf-8')
 	global ack_message
 	print("Topic: ", msg.topic + "\nMessage: " + message_string)
+	jsonstring=parsetoJson(message_string)
 	if msg.topic == 'ack':
 		print("ACK topic detected it")
-		ack_message = message_string
+		ack_message = str(jsonstring["ack_message"])
+		print(ack_message, " is ack msg from json")
 		print('new ')
 
 
@@ -210,11 +212,12 @@ while True:
 	for topic in topics:
 		#check for device ack for 4 seconds
 		ack_message = "none"
-		client1.publish(topic, '{"send":"true"}')
-		print('Published request message to devices!')
+		client1.publish(topic, 'amit')
+		#print('Published request message to devices!')
 
 		while time.time() - started < 4:
-			print(" ack_message: ", ack_message, ", connected device topic: ", topic)
+			print(" ack_message: ", type(ack_message), ", connected device topic: ", type(topic))
+			print(ack_message == topic)
 			if ack_message == topic:
 				flag_ack = 1
 				print("**********strings matched****************")
@@ -236,7 +239,7 @@ while True:
 			print(topic +' has been disconnected and removed!')
 
 	end_time = time.time()
-	wait_time = 30 - (end_time-started)
+	wait_time = 10 - (end_time-started)
 	if(wait_time > 0):
 		time.sleep(wait_time)
 

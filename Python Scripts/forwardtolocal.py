@@ -54,9 +54,13 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("actuator")
     client.subscribe("timer")
     client.subscribe("conf")
+    client.subscribe("sensor")
+
     print("Subscription to", "actuator", "successful!");
     print("Subscription to", "timer", "successful!");
     print("Subscription to", "conf", "successful!");
+    print("Subscription to", "sensor", "successful!");
+
 
 
 def on_message(client, userdata, msg):

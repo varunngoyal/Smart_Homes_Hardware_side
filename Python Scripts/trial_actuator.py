@@ -167,21 +167,18 @@ def on_connect2(client, userdata, flags, rc):
 
 
 def on_message2(client, userdata, msg):
-    # This function is called everytime the topic is published to.
-    # If you want to check each message, and do something depending on
-    # the content, the code to do this should be run in this function
-	global ack_message
-	global flag_ack
-	flag_ack=0
-
+	# This function is called everytime the topic is published to.
+	# If you want to check each message, and do something depending on
+	# the content, the code to do this should be run in this function
 	message_string = msg.payload.decode('utf-8')
-
-	print ("Topic: ", msg.topic + "\nMessage: " + message_string)
+	global ack_message
+	print("Topic: ", msg.topic + "\nMessage: " + message_string)
+	jsonstring=parsetoJson(message_string)
 	if msg.topic == 'ack':
 		print("ACK topic detected it")
-		ack_message=message_string
-
-
+		ack_message = str(jsonstring["ack_message"])
+		print(ack_message, " is ack msg from json")
+		print('new ')
 
     # The message itself is stored in the msg variable
     # and details about who sent it are stored in userdata
