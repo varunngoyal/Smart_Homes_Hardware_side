@@ -59,7 +59,7 @@ while True:
     client.publish(topic_name, message)
     input()
     topic_name = 'actuator'
-    message = '{"company":"samsung","type":"led","time":"5","topic":"led2","message":"OFF","from":"mobile"}'
+    message = '{"company":"samsung","type":"led","time":"5","topic":"led1","message":"OFF","from":"mobile"}'
     print("topic:", topic_name, "message:",message)
     client.publish(topic_name, message)
     input()

@@ -118,8 +118,8 @@ while True:
 
 	print(topics)
 
-	x = connected_devices.delete_many({})
-	print(x.deleted_count, " documents deleted.")
+	#x = connected_devices.delete_many({})
+	#print(x.deleted_count, " documents deleted.")
 
 	# send request message on every topic
 	for topic in topics:

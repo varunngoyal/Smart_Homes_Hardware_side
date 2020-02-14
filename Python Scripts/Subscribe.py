@@ -82,8 +82,14 @@ def on_message(client, userdata, msg):
 		# check if payload is containing the field send equals true
 		parsed_message = parseJson(message_string)
 		if parsed_message["send"] == "true":
+<<<<<<< HEAD
 			time.sleep(0.1)
 			client.publish('conf', '{"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC123", "topic":"led1"}')
+=======
+			#time.sleep(1)
+			#client.publish('conf', '{"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC123", "topic":"led1"}')
+			client.publish('ack', 'led1')
+>>>>>>> 7e8af8d79ec89098aa478a972dadc5460519e2fa
 			print('published message to led1')
 
 
@@ -94,8 +100,9 @@ def on_message(client, userdata, msg):
 
 		parsed_message = parseJson(message_string)
 		if parsed_message["send"] == "true":
-			time.sleep(1)
-			client.publish('conf', '{"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC456", "topic":"led2"}')
+			#time.sleep(1)
+			#client.publish('conf', '{"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC456", "topic":"led2"}')
+			client.publish('ack', 'led2')
 			print('published message to led2')
     
     # The message itself is stored in the msg variable
