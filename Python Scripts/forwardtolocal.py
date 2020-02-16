@@ -51,10 +51,10 @@ def on_connect(client, userdata, flags, rc):
     print ("Connected to client",client,"!", str(rc))
     
     # Once the client has connected to the broker, subscribe to the topic
-    client.subscribe("actuator")
-    client.subscribe("timer")
-    client.subscribe("conf")
-    client.subscribe("sensor")
+    client.subscribe("actuator", 2)
+    client.subscribe("timer", 2)
+    client.subscribe("conf", 2)
+    client.subscribe("sensor",2)
 
     print("Subscription to", "actuator", "successful!");
     print("Subscription to", "timer", "successful!");
@@ -101,7 +101,7 @@ while True:
     except Exception as e:
         # Stop the internal worker
         #client._mqtt_core._event_consumer.stop()
-        print("Failing to establish connection...trying again...")
+        print("Failing to establish connection...trying again..." + e)
         time.sleep(1)
         continue
 #client.connect(mqtt_server, mqtt_port_no)

@@ -238,6 +238,7 @@ while 1:
 #################################################################################################
 """
 {"company":"samsung", "type":"mobile","modelno":"567890", "uid":"ABC456", "topic":"mobile1"}
+{ "type" : "ldr", "time" : "5", "topic" : "301", "start" : "0", "end" : "0", "message" : "null", "from" : "mobile", "Watt":10,"duty_cycle":10, "category" :"actuator", "ack_val": "null"}
 
 """
 

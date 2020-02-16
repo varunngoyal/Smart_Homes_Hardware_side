@@ -212,7 +212,8 @@ while True:
 	for topic in topics:
 		#check for device ack for 4 seconds
 		ack_message = "none"
-		client1.publish(topic, 'amit')
+		client1.publish(str(topic), 'amit')
+		topic = str(topic)
 		#print('Published request message to devices!')
 
 		while time.time() - started < 4:
@@ -233,10 +234,10 @@ while True:
 
 		else:
 			topic_log = mydb.connected_devices.find_one({"topic":topic})
-
+			
 			mydb.session.insert_one(topic_log)
 			mydb.connected_devices.remove({"topic":topic})
-			print(topic +' has been disconnected and removed!')
+			print(str(topic) +' has been disconnected and removed!')
 
 	end_time = time.time()
 	wait_time = 10 - (end_time-started)

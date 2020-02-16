@@ -54,7 +54,7 @@ def on_connect(client, userdata, flags, rc):
         print ("Connected!", str(rc))
         print("Connected to ("+mqtt_username+", "+mqtt_password+")")
     else:
-        print ("Failing to establish connection.. returned with error code",rc)
+        print ("Failing to establish connection.. returned with error code ",rc)
     # Once the client has connected to the broker, subscribe to the topic
 
     client.subscribe("mobile")

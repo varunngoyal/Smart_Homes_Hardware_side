@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 #include <ESP8266WiFiMulti.h>
+#include "raspi_properties.h"
 
 #define O_PIN LED_BUILTIN
 #define LDR A0
@@ -24,10 +25,10 @@ boolean connectioWasAlive = true;
 const char *mqtt_user = "ghleymma";
 const char *mqtt_pass = "jmvoCCetDGiy";*/
 
-const char* mqtt_server = "192.168.1.104";
+/*const char* mqtt_server = "192.168.0.112";
 const int   mqtt_port_no = 1883;
 const char* mqtt_user = "pi";
-const char* mqtt_pass = "mike";
+const char* mqtt_pass = "mike";*/
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -41,7 +42,9 @@ void setup_wifi()
   
   wifiMulti.addAP("TP-LINK_1784", "asdfghjkl");
   //wifiMulti.addAP("ROOTB", "asdfghjkl");
+  
   wifiMulti.addAP("Get Your Own", "Tharki@777");
+  wifiMulti.addAP("ROHAN", "vaibhav018");
   wifiMulti.addAP("RUMS", "nellai4161");        //anirudh hall wifi
   wifiMulti.addAP("JioFi3_5BE5AC", "asdfghjkl"); // anirudh jio wifi
   
@@ -66,17 +69,19 @@ void publish_to_conf()
   //char topics[100][100] = {"301", "401"};
   
   //publishing messages on startup
-  char message[200] = "{ \"type\" : \"ldr\", \"topic\" :";
-  strcat(message, "301");
-  strcat(message,",\"start\" : \"0\", \"end\" : \"0\", \"category\": \"sensor\", \"message\" : \"0\", \"Watt\": \"10\",\"duty_cycle\":\"10\"}" );
+  char message[200] = "{ \"type\" : \"ldr\", \"topic\" :\"";
+  strcat(message, "301\"");
+  strcat(message,",\"start\" : \"0\", \"end\" : \"0\", \"message\" : \"0\", \"Watt\": \"10\"," );
+  strcat(message,"\"duty_cycle\":\"10\", \"category\": \"sensor\", \"ack_val\": \"null\"}");
   Serial.println(message);                    
   client.publish("conf", message);
   Serial.println("led information published on request to conf!");
-
-  char message1[200] = "{ \"type\" : \"fan\", \"topic\" :";
-  strcat(message1, "401");
-  strcat(message1,",\"start\" : \"0\", \"end\" : \"0\", \"category\": \"sensor\", \"message\" : \"0\", \"Watt\": \"10\",\"duty_cycle\":\"10\"}" );
-  Serial.println(message1);                    
+  
+  char message1[200] = "{ \"type\" : \"temp\", \"topic\" :\"";
+  strcat(message1, "401\"");
+  strcat(message1,",\"start\" : \"0\", \"end\" : \"0\", \"message\" : \"0\", \"Watt\": \"10\"," );
+  strcat(message1,"\"duty_cycle\":\"10\", \"category\": \"sensor\", \"ack_val\": \"null\"}");
+  Serial.println(message1);
   client.publish("conf", message1);
   Serial.println("fan information published on request to conf!");
 
@@ -125,13 +130,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     char topic1[100];
     strcpy(topic1, topic);
-    //if send is true from check status code, then send device info
-    char message[] = "{\"ack_message\": \"";
-    strcat(message, topic1);
-    strcat(message, "\"}");
-    client.publish("ack", message);
-    Serial.println("device information published on request to ack!");
-    Serial.print(topic1);
+
+//    //if send is true from check status code, then send device info
+//    if(strcmp(payloadstr, "check") == 0) {
+//      char message[] = "{\"ack_message\": \"";
+//      strcat(message, topic1);
+//      strcat(message, "\"}");
+//      client.publish("ack", message);
+//      Serial.println("device information published on request to ack!");
+//      Serial.print(topic1);
+//    }
 
     if(strcmp("301", topic1) == 0) { //ldr
         intensity = analogRead(LDR);
@@ -151,7 +159,7 @@ void setup() {
   setup_wifi();
 
   //*********************server name and port*************
-  PubSubClient temp = client.setServer("192.168.1.104", 1883); 
+  PubSubClient temp = client.setServer(mqtt_server, 1883); 
   
   Serial.print("connected: ");
   Serial.println(temp.connected());
@@ -224,7 +232,12 @@ void loop() {
     strcat(message, intensity_str);
     strcat(message, "\" }");
     
-    client.publish("sensor", message);
+    client.publish("ack", message);
+    delay(10);
+    client.publish("ack", message);
+    delay(10);
+    client.publish("ack", message);
+      
     flag_ldr = 0;
   }
 
@@ -235,7 +248,12 @@ void loop() {
     char message1[] = "{\"ack_message\": \"401\", \"ack_val\": \"";
     strcat(message1, temp_str);
     strcat(message1, "\" }");
-    client.publish("sensor", message1); 
+    client.publish("ack", message1); 
+    delay(10);
+    client.publish("ack", message1); 
+    delay(10);
+    client.publish("ack", message1); 
+    
     flag_temp = 0;
   }
 

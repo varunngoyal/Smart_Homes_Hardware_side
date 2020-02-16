@@ -78,9 +78,11 @@ def on_connect1(client, userdata, flags, rc):
 print("Subscription to", "actuator", "successful!")
 
 def publish2(a,b):
-	print("Trynig to publish on ",a, " message ", b)
+
+	print("Trying to publish on ",a, " message ", b)
 	global client2
-	client2.publish(a,b)
+	client2.publish(a, b)
+	#print('Message published with status '+client2.publish(a,b))
 
 def on_message1(client, userdata, msg):
     # This function is called everytime the topic is published to.
@@ -104,13 +106,12 @@ def on_message1(client, userdata, msg):
 		actuator_message = json_message['message']
 		publish2(actuator_topic, actuator_message)
 
-
 	# 1b if success/ack comes from device forward the message to all mobile devices
 			# just check if connected
 		started=time.time()
 		print("time started at ",started)
 		while time.time()-started < 4 :
-			print(" ack_message ",ack_message, "actuator topic ", actuator_topic )
+			print(" ack_message ",type(ack_message), "actuator topic ", type(actuator_topic) )
 			if ack_message==actuator_topic:
 				flag_ack=1
 				print("strings matched")
@@ -121,6 +122,7 @@ def on_message1(client, userdata, msg):
 
 # 2 take last message out of connected_devices and save on session collection
 		if flag_ack==1:
+			flag_ack=0
 			x=mydb.connected_devices.find_one({ "topic": actuator_topic })
 			print('topic',actuator_topic,"found in the connected devices")
 			print(x)
@@ -162,7 +164,7 @@ def on_connect2(client, userdata, flags, rc):
     print ("Connected!", str(rc))
 	# Once the client has connected to the broker, subscribe to the topic
     #client1.subscribe(mqtt_topic)
-    client.subscribe("ack",2)			#subscriing multiple topics
+    client.subscribe("ack",0)			#subscriing multiple topics
 #	client.subscribe("ack")  			# subscriing multiple topics
 
 
@@ -171,10 +173,11 @@ def on_message2(client, userdata, msg):
 	# If you want to check each message, and do something depending on
 	# the content, the code to do this should be run in this function
 	message_string = msg.payload.decode('utf-8')
+	message_topic = msg.topic.decode('utf-8')
 	global ack_message
-	print("Topic: ", msg.topic + "\nMessage: " + message_string)
+	print("Topic: ", message_topic + "\nMessage: " + message_string)
 	jsonstring=parsetoJson(message_string)
-	if msg.topic == 'ack':
+	if message_topic == 'ack':
 		print("ACK topic detected it")
 		ack_message = str(jsonstring["ack_message"])
 		print(ack_message, " is ack msg from json")
@@ -232,12 +235,18 @@ thread1.start()
 
 # Once we have told the client to csonnect, let the client object run itself
 while 1:
-	i=0
+	j=0
 
 
 #################################################################################################
 """
-{"company":"samsung", "type":"mobile","modelno":"567890", "uid":"ABC456", "topic":"mobile1"}
+db.connected_devices.insertOne({'type': 'led', 'time': '5', 'topic': '101', 
+'start': 1581139241.9628208, 'end': 0.0, 'message': 'ON', 'from': 'mobile', 'last_message': 'ON'})
+
+actuator message: 
+{ "type" : "led", "time" : "5", "topic" : 101, "start" : "0", "end" : "0", "message" : "1023", "from" : "mobile", "Watt":10,"duty_cycle":10, "category" :"actuator", "ack_val": "null"}
+
+{ "type" : "fan", "time" : "5", "topic" : "201", "start" : "0", "end" : "0", "message" : "5", "from" : "mobile", "Watt":10,"duty_cycle":10, "category" :"actuator", "ack_val": "null"}
 
 """
 

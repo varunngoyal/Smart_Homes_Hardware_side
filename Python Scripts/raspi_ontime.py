@@ -63,6 +63,20 @@ while 1:
 db.connected_devices.insertOne({"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC123", "topic":"led1"})
 db.connected_devices.insertOne({"company":"samsung", "type":"led","modelno":"123456", "uid":"ABC456", "topic":"led2"})
 
+db.connected_devices.insertOne({"type" : "led", "time" : "5", "topic" : "101", "start" : "0",
+ "end" : "0", "message" : "ON", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor",
+ "ack_val": "null"})
 
+db.connected_devices.insertOne({"type" : "ldr", "time" : "5", "topic" : "101", "start" : 0,
+ "end" : "0", "message" : "ON", "from" : "mobile", "Watt":10,"duty_cycle":10, "category":"sensor",
+ "ack_val": "null"})
+
+db.connected_devices.insertOne({"type" : "temp", "time" : "5", "topic" : "101", "start" : 0,
+ "end" : "0", "message" : "ON", "from" : "mobile", "Watt":10,"duty_cycle":10, "category":"sensor",
+ "ack_val": "null"})
+
+db.connected_devices.insertOne({"type" : "fan", "time" : "5", "topic" : "101", "start" : 0,
+ "end" : "0", "message" : "ON", "from" : "mobile", "Watt":10,"duty_cycle":10, "category":"sensor",
+ "ack_val": "null"})
 """
 

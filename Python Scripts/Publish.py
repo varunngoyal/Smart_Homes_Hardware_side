@@ -53,8 +53,8 @@ while True:
     time.sleep(5)
     """
     #topic_name = input("Enter the topic name: ") 
-    topic_name = 'led1'
-    message = '{"send":"true"}'
+    topic_name = 'actuator'
+    message = '{"_id" : "1", "type" : "mobile", "time" : "5", "topic" : "101", "start" : "0", "end" : "0", "message" : "1024", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}'
     #message = input("What is your message: ")
     print()
     print("topic:", topic_name, "message:",message)
@@ -62,6 +62,27 @@ while True:
     print()	
     client.publish(topic_name, message)
     input()
+
+    topic_name = 'actuator'
+    message = '{"_id" : "1", "type" : "mobile", "time" : "5", "topic" : "101", "start" : "0", "end" : "0", "message" : "0", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}'
+    client.publish(topic_name, message)
+    print("topic:", topic_name, "message:",message)
+    input()
+
+    """
+    topic_name = 'actuator'
+    message = '{"_id" : "1", "type" : "fan", "time" : "5", "topic" : "201", "start" : "0", "end" : "0", "message" : "5", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}'
+    client.publish(topic_name, message)
+    print("topic:", topic_name, "message:",message)
+    input()
+
+    topic_name = 'actuator'
+    message = '{"_id" : "1", "type" : "fan", "time" : "5", "topic" : "201", "start" : "0", "end" : "0", "message" : "0", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}'
+    client.publish(topic_name, message)
+    print("topic:", topic_name, "message:",message)
+    input()
+    """
+
     
 
 # Once we have told the client to connect, let the client object run itself
@@ -70,8 +91,27 @@ client.disconnect()
 
 """
     topic_name = 'actuator'
-    message = '{"devicename":"Redmi-note-4", "topic":"led1", "type":"led", "company":"Redmi", "uid":"QWE123", "message":"ON","start":"0","end":"0"}'
+    message = '{"_id" : "1", "type" : "led", "time" : "5", "topic" : "101", "start" : "0", "end" : "0", "message" : "1024", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}'
 
+    topic_name = 'actuator'
+    message = '{"_id" : "1", "type" : "led", "time" : "5", "topic" : "101", "start" : "0", "end" : "0", "message" : "0", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}'
+
+    topic_name = 'actuator'
+    message = '{"_id" : "1", "type" : "fan", "time" : "5", "topic" : "201", "start" : "0", "end" : "0", "message" : "5", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}'
+
+    topic_name = 'actuator'
+    message = '{"_id" : "1", "type" : "fan", "time" : "5", "topic" : "201", "start" : "0", "end" : "0", "message" : "0", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}'
+
+#check device init
+	topic_name = "conf"
+	message = {"_id" : "1", "type" : "mobile", "time" : "5", "topic" : "mobile1", "start" : "0", "end" : "0", "message" : "ON", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"null", "ack_val": "null"}
+
+#sensor check
+	topic_name = "sensor"
+	message = {"_id" : "1", "type" : "mobile", "time" : "5", "topic" : "401", "start" : "0", "end" : "0", "message" : "ON", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}
+
+	topic_name = "sensor"
+	message = {"_id" : "1", "type" : "mobile", "time" : "5", "topic" : "301", "start" : "0", "end" : "0", "message" : "ON", "from" : "mobile", "Watt":"10","duty_cycle":"10", "category":"sensor", "ack_val": "null"}
 
 
 """
