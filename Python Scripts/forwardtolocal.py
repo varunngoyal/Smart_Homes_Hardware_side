@@ -2,7 +2,7 @@
 Python MQTT Subscription client
 
 *************************************************************
-Forwards the traffic from the cloudmqtt to the local network
+Forwards the traffic from the local network to Cloudmqtt
 *************************************************************
 
 Thomas Varnish (https://github.com/tvarnish), (https://www.instructables.com/member/Tango172)
@@ -16,14 +16,13 @@ import configparser
 ######################################################################################
 #------------------ALL THE CONFIGURATIONS---------------------------------------------
 ######################################################################################
-# Read all the credentials from raspy file 
+# Read all the credentials from raspy file
 config = configparser.ConfigParser()
 config.read('raspy.properties')
 
 # MQTT credentials
 mqtt_username = config.get('mqttCreds', 'mqtt.username')
 mqtt_password = config.get('mqttCreds', 'mqtt.password')
-mqtt_topic = "led1"
 mqtt_server = config.get('mqttCreds', 'mqtt.server')
 mqtt_port_no = int(config.get('mqttCreds', 'mqtt.port_no'))
 
@@ -37,92 +36,86 @@ local_port_no = int(config.get('localnetwork', 'local.port_no'))
 
 #######################################################################################
 
-client = mqtt.Client()
-client2 = mqtt.Client()
+# Initialize clients for CLOUDMQTT and Raspberry Pi
+client_raspi = mqtt.Client()
+client_cloudmqtt = mqtt.Client()
 # Set the username and password for the MQTT client
-client.username_pw_set(mqtt_username, mqtt_password)
-client2.username_pw_set(raspi_uname, raspi_pass)	#rasp pi
+client_cloudmqtt.username_pw_set(mqtt_username, mqtt_password)
+
+client_raspi.username_pw_set(raspi_uname, raspi_pass)	#rasp pi
 
 
 # These functions handle what happens when the MQTT client connects
 # to the broker, and what happens then the topic receives a message
 def on_connect(client, userdata, flags, rc):
     # rc is the error code returned when connecting to the broker
-    print ("Connected to client",client,"!", str(rc))
-    
+    if rc == 0:
+        print ("Connected!", str(rc))
+        print("Connected to ("+raspi_uname+", "+raspi_pass+")")
+    else:
+        print ("Failing to establish connection.. returned with error code",rc)
     # Once the client has connected to the broker, subscribe to the topic
+
     client.subscribe("actuator")
     client.subscribe("timer")
-    client.subscribe("conf")
     client.subscribe("sensor")
+    client.subscribe("conf")
 
     print("Subscription to", "actuator", "successful!");
     print("Subscription to", "timer", "successful!");
-    print("Subscription to", "conf", "successful!");
     print("Subscription to", "sensor", "successful!");
-
+    print("Subscription to", "conf", "successful!");
 
 
 def on_message(client, userdata, msg):
     # This function is called everytime the topic is published to.
     # If you want to check each message, and do something depending on
     # the content, the code to do this should be run in this function
+
     message_string = msg.payload.decode('utf-8')
-    print ("Topic: ", msg.topic + "\nMessage: " + message_string)
-    
-    client2.publish(msg.topic, message_string)
-    print("The message has been published to raspberry pi!")
-    
+    print("Topic: ", msg.topic + "\nMessage: " + message_string)
+
+    if msg.topic == "actuator":
+        client_raspi.publish("actuator", message_string)
+    elif msg.topic == "sensor":
+        client_raspi.publish("sensor", message_string)
+    elif msg.topic == "timer":
+        client_raspi.publish("timer", message_string)
+    elif msg.topic == "conf":
+        client_raspi.publish("conf", message_string)
+
+
+    print("The message has been published to cloudmqtt!")
+
     # The message itself is stored in the msg variable
     # and details about who sent it are stored in userdata
 
-"""
-def on_disconnect(client, userdata, rc):
-        print("Unexpected MQTT disconnection. Will auto-reconnect")
-        time.sleep(1)
-"""
-
 # Here, we are telling the client which functions are to be run
 # on connecting, and on receiving a message
-client.on_connect = on_connect
-client.on_message = on_message
-#client.on_disconnect = on_disconnect
+client_cloudmqtt.on_connect = on_connect
+client_cloudmqtt.on_message = on_message
+
+
+
 # Once everything has been set up, we can (finally) connect to the broker
 # 1883 is the listener port that the MQTT broker is using
-
 
 while True:
     try:
         #print("",end='')
-        client.connect(mqtt_server, mqtt_port_no)
-        client2.connect(local_ip, local_port_no)  # for running on rasp pi
-
+        client_cloudmqtt.connect(mqtt_server, mqtt_port_no)
+        client_raspi.connect(local_ip, local_port_no)
         break
     except Exception as e:
         # Stop the internal worker
         #client._mqtt_core._event_consumer.stop()
+        print(type(e).__name__)
         print("Failing to establish connection...trying again...")
         time.sleep(1)
         continue
-#client.connect(mqtt_server, mqtt_port_no)
-# for running code on other machine than rasp pi
-# client2.connect("192.168.0.102", 1883)
-#print("Connected")
 
-#print ("Topic: ", msg.topic + "\nMessage: " + str(msg.payload))
-
-"""
-while True:
-    #sensor_data = [read_temp(), read_humidity(), read_pressure()]
-    client.publish("led1", "1024")
-    print("LED ON")
-    time.sleep(5)
-    client.publish("led1", "0")
-    print("LED OFF")
-    time.sleep(5)
-"""
 
 # Once we have told the client to connect, let the client object run itself
-client.loop_forever()
-client.disconnect()
+client_cloudmqtt.loop_forever()
+client_cloudmqtt.disconnect()
 

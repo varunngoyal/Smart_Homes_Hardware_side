@@ -1,19 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="48500451-f1d0-49a3-852e-d813d8df8be1" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1XZHS4kroR1aeYIxnNJMHhm9EbX" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="48500451-f1d0-49a3-852e-d813d8df8be1" name="Default Changelist" comment="" />
+      <created>1581246692315</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1581246692315</updated>
+      <workItem from="1581246703889" duration="783000" />
+    </task>
+    <task id="LOCAL-00001" summary="amit commit">
+      <created>1581246749602</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1581246749602</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="amit commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="amit commit" />
   </component>
   <component name="WindowStateProjectService">
     <state x="275" y="27" width="866" height="741" key="CommitChangelistDialog2" timestamp="1581246749139">
       <screen x="61" y="27" width="1305" height="741" />
     </state>
     <state x="275" y="27" width="866" height="741" key="CommitChangelistDialog2/61.27.1305.741@61.27.1305.741" timestamp="1581246749139" />
+    <state x="418" y="113" width="580" height="568" key="MultipleFileMergeDialog" timestamp="1581246877381">
+      <screen x="61" y="27" width="1305" height="741" />
+    </state>
+    <state x="418" y="113" width="580" height="568" key="MultipleFileMergeDialog/61.27.1305.741@61.27.1305.741" timestamp="1581246877381" />
     <state x="308" y="133" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1581246816729">
       <screen x="61" y="27" width="1305" height="741" />
     </state>

@@ -3,14 +3,13 @@ import time
 import threading
 import configparser
 import json
-from pymongo import MongoClient 
+from pymongo import MongoClient
 from bson.json_util import dumps
 
-
- #from array import *
+# from array import *
 
 ######################################################################################
-#------------------ALL THE CONFIGURATIONS---------------------------------------------
+# ------------------ALL THE CONFIGURATIONS---------------------------------------------
 ######################################################################################
 
 config = configparser.ConfigParser()
@@ -38,7 +37,7 @@ mongo_host = config.get('mongo', 'mongo.host')
 
 #######################################################################################
 
-#Listen to clients who want to configure themselves
+# Listen to clients who want to configure themselves
 
 client1 = mqtt.Client()
 client2 = mqtt.Client()
@@ -51,8 +50,9 @@ mydb = mongoclient[mongo_database_name]
 mydb.session.drop()
 mydb.actuator.drop()
 global ack_message
-ack_message="none"
-
+ack_message = "none"
+global ack_val
+ack_val=0
 
 # function() parseJson - returns parsed json
 def parsetoJson(message_string):
@@ -63,125 +63,141 @@ def parsetoJson(message_string):
 		print('Error parsing json message: {0}'.format(type(x).__name__))
 
 
-
 # These functions handle what happens when the MQTT client connects
 # to the broker, and what happens then the topic receives a message
 def on_connect1(client, userdata, flags, rc):
-    # rc is the error code returned when connecting to the broker
-    print ("Connected!", str(rc))
+	# rc is the error code returned when connecting to the broker
+	print("Connected!", str(rc))
 	# Once the client has connected to the broker, subscribe to the topic
-    #client1.subscribe(mqtt_topic)
-    client.subscribe("actuator",2)			#subscriing multiple topics
+	# client1.subscribe(mqtt_topic)
+	client.subscribe("sensor", 2)  # subscriing multiple topics
+
+
 #	client.subscribe("ack")  			# subscriing multiple topics
 
 
-print("Subscription to", "actuator", "successful!")
+print("Subscription to", "sensor", "successful!")
 
-def publish1(a,b):
-	print("Trynig to publish on ",a, " message ", b)
+
+def publish2(a, b):
+	a=str(a)
+	print("Trynig to publish on ", a, " message ", b)
+	b=str(b)
 	global client2
-	client2.publish(a,b)
+	client2.publish(a, b)
+
 
 def on_message1(client, userdata, msg):
-    # This function is called everytime the topic is published to.
-    # If you want to check each message, and do something depending on
-    # the content, the code to do this should be run in this function
+	# This function is called everytime the topic is published to.
+	# If you want to check each message, and do something depending on
+	# the content, the code to do this should be run in this function
 	global ack_message
-	ack_message='none'
+	ack_message = 'none'
 	global flag_ack
-	flag_ack=0
+	flag_ack = 0
+	global ack_val
+	ack_val=0
 
 
 	message_string = msg.payload.decode('utf-8')
 
-	print ("Topic: ", msg.topic + "\nMessage: " + message_string)
+	print("Topic: ", msg.topic + "\nMessage: " + message_string)
 
 	if msg.topic == 'sensor':
 		# 1a it forwards the message to respective actuator
 		print('Doing 1')
 		json_message = parsetoJson(message_string)
-		actuator_topic = json_message['topic']
-		actuator_message = json_message['message']
-		publish1(actuator_topic, actuator_message)
+		print("1.1")
+		sensor_topic = json_message['topic']
+		sensor_message = json_message['message']
+		publish2(sensor_topic, sensor_message)
 
-
-	# 1b if success/ack comes from device forward the message to all mobile devices
-			# just check if connected
-		started=time.time()
-		print("time started at ",started)
-		while time.time()-started < 4 :
-			print(" ack_message ",ack_message, "actuator topic ", actuator_topic )
-			if ack_message==actuator_topic:
-				flag_ack=1
+		# 1b if success/ack comes from device forward the message to all mobile devices
+		# just check if connected
+		started = time.time()
+		print("time started at ", started)
+		while time.time() - started < 4:
+			#print(" ack_message ", ack_message, "actuator topic ", sensor_topic)
+			if ack_message == sensor_topic:
+				flag_ack = 1
 				print("strings matched")
 				break
-			time.sleep(1)
-		ack_message="none"
+		ack_message = "none"
 
-
-# 2 take last message out of connected_devices and save on session collection
-		if flag_ack==1:
-			x=mydb.connected_devices.find_one({ "topic": actuator_topic })
-			print('topic',actuator_topic,"found in the connected devices")
+		# 2 take last message out of connected_devices and save on session collection
+		if flag_ack == 1:
+			flag_ack=0
+			x = mydb.connected_devices.find_one({"topic": sensor_topic})
+			print('topic', sensor_topic, "found in the connected devices")
 			print(x)
-			print(x!=None)
-			if x!=None:
+			print(x != None)
+			if x != None:
 				y = parsetoJson(dumps(x))
-				print("parsed x : ",y)
+				print("parsed x : ", y)
 				# append current time and end time
-				y['_id']="A"
+				y['_id'] = "A"
+				y['ack_val']=ack_val
 				del y['_id']
 				y['end'] = time.time()
-				#y['message']="hello"
-				#print('x to be inserted: ',x)
-				k=mydb.session.insert_one(y)	##dont know why it was inserting record twice
-				print('Printing k',k)
+				# y['message']="hello"
+				# print('x to be inserted: ',x)
+				k = mydb.session_sensor.insert_one(y)  ##dont know why it was inserting record twice
+				print('Printing k', k)
 			else:
 				print("Record for device not found")
 
 			# 3 it updates the connected_devices with last message
 			print('Doing 2')
-			myquery = { "topic": actuator_topic }
-			newvalues = { "$set": {"last_message":actuator_message, "start": time.time()} }
+			myquery = {"topic": sensor_topic}
+			newvalues = {"$set": {"ack_val": ack_val, "start": time.time()}}
 			mydb.connected_devices.update_one(myquery, newvalues)
-			#'{"topic":"led1", "message":"ON", "from"="mobile1"}'
-			# logging the message as it is 
+			json_message["ack_val"] = ack_val
+			print("ACK VALLLLLLLLLLLLLLLLLLLL",ack_val)
+			# publish to all mobile devices about activity
+
+			publish2("mobile", json_message)
+			# '{"topic":"led1", "message":"ON", "from"="mobile1"}'
+			# logging the message as it is
 			# 4 it inserts log message to actuator
 			print('Doing 3')
-			mydb.actuator.insert_one(json_message)
-			
-		else :
+			mydb.sensor.insert_one(json_message)
+
+		else:
 			print("Unable to receive ack from device")
+			json_message['ack_val'] = "-1"
+			publish2("mobile", json_message)
 
 
 def on_connect2(client, userdata, flags, rc):
-    # rc is the error code returned when connecting to the broker
-    print ("Connected!", str(rc))
+	# rc is the error code returned when connecting to the broker
+	print("Connected!", str(rc))
 	# Once the client has connected to the broker, subscribe to the topic
-    #client1.subscribe(mqtt_topic)
-    client.subscribe("ack",2)			#subscriing multiple topics
+	# client1.subscribe(mqtt_topic)
+	client.subscribe("ack", 2)  # subscriing multiple topics
+
+
 #	client.subscribe("ack")  			# subscriing multiple topics
 
 
 def on_message2(client, userdata, msg):
-    # This function is called everytime the topic is published to.
-    # If you want to check each message, and do something depending on
-    # the content, the code to do this should be run in this function
-	global ack_message
-	global flag_ack
-	flag_ack=0
-
+	# This function is called everytime the topic is published to.
+	# If you want to check each message, and do something depending on
+	# the content, the code to do this should be run in this function
 	message_string = msg.payload.decode('utf-8')
-
-	print ("Topic: ", msg.topic + "\nMessage: " + message_string)
+	global ack_message
+	global ack_val
+	#print("Topic: ", msg.topic + "\nMessage: " + message_string)
+	jsonstring = parsetoJson(message_string)
 	if msg.topic == 'ack':
-		print("ACK topic detected it")
-		ack_message=message_string
+		#print("ACK topic detected it")
+		ack_message = str(jsonstring["ack_message"])
+		ack_val=jsonstring["ack_val"]
+		#print(ack_message, " is ack msg from json")
+		#print('new ')
 
 
-
-    # The message itself is stored in the msg variable
-    # and details about who sent it are stored in userdata
+# The message itself is stored in the msg variable
+# and details about who sent it are stored in userdata
 
 
 # Here, we are telling the client which functions are to be run
@@ -197,17 +213,18 @@ client2.on_message = on_message2
 client1.connect(local_ip, local_port_no)
 client2.connect(local_ip, local_port_no)
 
-#print ("Topic: ", msg.topic + "\nMessage: " + str(msg.payload))
-#client.publish("led1", "0")
+# print ("Topic: ", msg.topic + "\nMessage: " + str(msg.payload))
+# client.publish("led1", "0")
 """
 while True:
-    #sensor_data = [read_temp(), read_humidity(), read_pressure()]
-    print("LED ON")
-    time.sleep(5)
-    client.publish("led1", "0")
-    print("LED OFF")
-    time.sleep(5)
+	#sensor_data = [read_temp(), read_humidity(), read_pressure()]
+	print("LED ON")
+	time.sleep(5)
+	client.publish("led1", "0")
+	print("LED OFF")
+	time.sleep(5)
 """
+
 
 def trigger2():
 	print("starting loop 2")
@@ -215,29 +232,23 @@ def trigger2():
 	client2.loop_forever()
 	client2.disconnect()
 
+
 def trigger1():
 	print("starting loop 1")
 	global client1
 	client1.loop_forever()
 	client1.disconnect()
 
-thread2= threading.Thread(target=trigger2)
+
+thread2 = threading.Thread(target=trigger2)
 thread2.daemon = True
 thread2.start()
 
 print("Strarting loop 1")
-thread1= threading.Thread(target=trigger1)
+thread1 = threading.Thread(target=trigger1)
 thread1.daemon = True
 thread1.start()
 
 # Once we have told the client to csonnect, let the client object run itself
 while 1:
-	i=0
-
-
-#################################################################################################
-"""
-{"company":"samsung", "type":"mobile","modelno":"567890", "uid":"ABC456", "topic":"mobile1"}
-
-"""
-
+	i = 0

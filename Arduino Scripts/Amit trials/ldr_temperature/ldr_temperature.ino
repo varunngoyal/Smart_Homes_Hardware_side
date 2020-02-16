@@ -1,4 +1,4 @@
-                                                      
+
 
   #include <ESP8266WiFiMulti.h>
 
@@ -15,9 +15,11 @@ boolean connectioWasAlive = true;
 
 //StaticJsonDocument<300> doc;
 
-//char id[] ="{\"company\":\"samsung\",\"type\":\"led\",\"uid\":1001}";
- char id[]="led1";
-//const char* ssid = "TP-LINK_1784";
+char id[] ="{\"company\":\"samsung\",\"type\":\"ldr\",\"topic\":301,\"category\":\"sensor\"}";
+char id[] ="{\"company\":\"samsung\",\"type\":\"temp\",\"topic\":401,\"category\":\"sensor\"}";
+// char id1[]="301";
+// char id2[]="401";
+ //const char* ssid = "TP-LINK_1784";
 //const char* password = "asdfghjkl";
 //const char* ssid = "Get your own";
 //const char* password = "Tharki@777";
@@ -28,7 +30,8 @@ const char *mqtt_user = "ghleymma";
 const char *mqtt_pass = "jmvoCCetDGiy";*/
 
 const char* mqtt_server = "192.168.1.104";
-const char* mqtt_topic = "led1";
+const char* mqtt_topic1 = "301";
+const char* mqtt_topic2 = "401";
 const char* mqtt_user = "pi";
 const char* mqtt_pass = "mike";
 
@@ -86,7 +89,8 @@ void reconnect() {
 
       if(client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
         Serial.println("connected");
-        client.publish("conf", id);
+        client.publish("conf", id1);
+        client.publish("conf", id2);
         Serial.println("publishing jason initialization");//once get connected to server pass self identity
         
       } else {
@@ -153,13 +157,22 @@ void setup() {
   
   client.setCallback(callback);
   reconnect();
-  if(client.subscribe("led1", 0) == true)
+  if(client.subscribe(mqtt_topic1, 0) == true)
   {
-    Serial.println("subscription to led1 successful!");  
+    Serial.println("subscription to topic1 successful!");  
   }
   else {
-    Serial.println("subscription to led1 failed!");  
+    Serial.println("subscription to topic1 failed!");  
   }
+  //reconnect();
+  if(client.subscribe(mqtt_topic2, 0) == true)
+  {
+    Serial.println("subscription to topic2 successful!");  
+  }
+  else {
+    Serial.println("subscription to topic2 failed!");  
+  }
+  
 }
 
 void loop() {
