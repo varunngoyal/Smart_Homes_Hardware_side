@@ -71,15 +71,21 @@ def on_connect1(client, userdata, flags, rc):
     print ("Connected!", str(rc))
 	# Once the client has connected to the broker, subscribe to the topic
     #client1.subscribe(mqtt_topic)
-    client.subscribe("actuator",2)			#subscriing multiple topics
+    client.subscribe("actuator")			#subscriing multiple topics
 #	client.subscribe("ack")  			# subscriing multiple topics
 
 
 print("Subscription to", "actuator", "successful!")
 
 def publish2(a,b):
+#<<<<<<< HEAD
 
 	print("Trying to publish on ",a, " message ", b)
+#=======
+	a=str(a)
+	b=str(b)
+	print("Trynig to publish on ",a, " message ", b)
+#>>>>>>> 59a624dbfd2aabbb0203e373ee5affdb259d399c
 	global client2
 	client2.publish(a, b)
 	#print('Message published with status '+client2.publish(a,b))
@@ -111,18 +117,27 @@ def on_message1(client, userdata, msg):
 		started=time.time()
 		print("time started at ",started)
 		while time.time()-started < 4 :
+#<<<<<<< HEAD
 			print(" ack_message ",type(ack_message), "actuator topic ", type(actuator_topic) )
+#=======
+			#print(" ack_message ",type(ack_message), "actuator topic ", type(actuator_topic) )
+#>>>>>>> 59a624dbfd2aabbb0203e373ee5affdb259d399c
 			if ack_message==actuator_topic:
 				flag_ack=1
-				print("strings matched")
+				#print("strings matched")
 				break
-			time.sleep(1)
+
+
 		ack_message="none"
 
 
 # 2 take last message out of connected_devices and save on session collection
 		if flag_ack==1:
+#<<<<<<< HEAD
 			flag_ack=0
+#=======
+			print("strings matched")
+#>>>>>>> 59a624dbfd2aabbb0203e373ee5affdb259d399c
 			x=mydb.connected_devices.find_one({ "topic": actuator_topic })
 			print('topic',actuator_topic,"found in the connected devices")
 			print(x)
@@ -156,8 +171,14 @@ def on_message1(client, userdata, msg):
 			mydb.actuator.insert_one(json_message)
 			
 		else :
+			print()
 			print("Unable to receive ack from device")
 
+			#change ack_val to -1 and semd
+			json_message['ack_val']="-1"
+			publish2("mobile",json_message)
+
+			print()
 
 def on_connect2(client, userdata, flags, rc):
     # rc is the error code returned when connecting to the broker
@@ -175,13 +196,20 @@ def on_message2(client, userdata, msg):
 	message_string = msg.payload.decode('utf-8')
 	message_topic = msg.topic.decode('utf-8')
 	global ack_message
+#<<<<<<< HEAD
 	print("Topic: ", message_topic + "\nMessage: " + message_string)
 	jsonstring=parsetoJson(message_string)
 	if message_topic == 'ack':
 		print("ACK topic detected it")
+#=======
+	#print("Topic: ", msg.topic + "\nMessage: " + message_string)
+	jsonstring=parsetoJson(message_string)
+	if msg.topic == 'ack':
+		#print("ACK topic detected it")
+#>>>>>>> 59a624dbfd2aabbb0203e373ee5affdb259d399c
 		ack_message = str(jsonstring["ack_message"])
-		print(ack_message, " is ack msg from json")
-		print('new ')
+		#print(ack_message, " is ack msg from json")
+		#print('new ')
 
     # The message itself is stored in the msg variable
     # and details about who sent it are stored in userdata
@@ -247,6 +275,9 @@ actuator message:
 { "type" : "led", "time" : "5", "topic" : 101, "start" : "0", "end" : "0", "message" : "1023", "from" : "mobile", "Watt":10,"duty_cycle":10, "category" :"actuator", "ack_val": "null"}
 
 { "type" : "fan", "time" : "5", "topic" : "201", "start" : "0", "end" : "0", "message" : "5", "from" : "mobile", "Watt":10,"duty_cycle":10, "category" :"actuator", "ack_val": "null"}
+
+{ "_id" : ObjectId("5e3e72a8831e7bd58506028e"), "type" : "led", "time" : "5", "topic" : 101, "start" : ”0”, "end" : “0”, "message" : "ON", "from" : "mobile", "Watt":10,"duty_cycle":10, "category":"sensor", "ack_val": "null"}
+
 
 """
 

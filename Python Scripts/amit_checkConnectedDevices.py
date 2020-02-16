@@ -35,8 +35,6 @@ mongo_host = config.get('mongo', 'mongo.host')
 
 #######################################################################################
 
-#Listen to clients who want to configure themselves
-
 
 client1 = mqtt.Client()
 client2 = mqtt.Client()
@@ -52,7 +50,7 @@ global ack_message
 ack_message = "none"
 
 
-# function() parseJson - returns parsed json
+# function() parseJson - returns json equivalent of the string
 def parsetoJson(message_string):
 	try:
 		parsed_json = json.loads(message_string)
@@ -78,7 +76,7 @@ print("Subscription to", "actuator", "successful!")
 
 
 def publish2(a, b):
-	print("Trynig to publish on ", a, " message ", b)
+	print("Trying to publish on ", a, " message ", b)
 	global client2
 	client2.publish(a, b)
 
@@ -111,13 +109,13 @@ def on_message2(client, userdata, msg):
 	# the content, the code to do this should be run in this function
 	message_string = msg.payload.decode('utf-8')
 	global ack_message
-	print("Topic: ", msg.topic + "\nMessage: " + message_string)
+	#print("Topic: ", msg.topic + "\nMessage: " + message_string)
 	jsonstring=parsetoJson(message_string)
 	if msg.topic == 'ack':
-		print("ACK topic detected it")
+		#print("ACK topic detected it")
 		ack_message = str(jsonstring["ack_message"])
-		print(ack_message, " is ack msg from json")
-		print('new ')
+		#print(ack_message, " is ack msg from json")
+		#print('new ')
 
 
 # The message itself is stored in the msg variable
@@ -212,18 +210,22 @@ while True:
 	for topic in topics:
 		#check for device ack for 4 seconds
 		ack_message = "none"
+#<<<<<<< HEAD
 		client1.publish(str(topic), 'amit')
 		topic = str(topic)
 		#print('Published request message to devices!')
+#=======
+		client1.publish(topic, 'amit')
+		started=time.time()
+#>>>>>>> 59a624dbfd2aabbb0203e373ee5affdb259d399c
 
-		while time.time() - started < 4:
-			print(" ack_message: ", type(ack_message), ", connected device topic: ", type(topic))
-			print(ack_message == topic)
+		while time.time() - started < 3:
+			#print(" ack_message: ", ack_message, ", connected device topic: ", topic)
+			#print(ack_message == topic)
 			if ack_message == topic:
 				flag_ack = 1
-				print("**********strings matched****************")
+				#print("**********strings matched****************")
 				break
-			time.sleep(1)
 		ack_message = "none"
 
 		if(flag_ack==1):
@@ -234,36 +236,28 @@ while True:
 
 		else:
 			topic_log = mydb.connected_devices.find_one({"topic":topic})
+#<<<<<<< HEAD
 			
 			mydb.session.insert_one(topic_log)
 			mydb.connected_devices.remove({"topic":topic})
 			print(str(topic) +' has been disconnected and removed!')
+#=======
+			if topic_log!=None:
+				del topic_log['_id']
+				mydb.session.insert_one(topic_log)
+				mydb.connected_devices.delete_one({"topic":topic})
+				print(topic +' has been disconnected and removed!')
+
+
+		flag_ack=0
+#>>>>>>> 59a624dbfd2aabbb0203e373ee5affdb259d399c
 
 	end_time = time.time()
 	wait_time = 10 - (end_time-started)
 	if(wait_time > 0):
 		time.sleep(wait_time)
 
-#print('published message')
-#while True:
-#	time.sleep(2)
-#	print('2 seconds passed...')
-#	client.publish('led1', '{"send": "true"}')
-#	print('published to led')
-
-
-
-"""
-while True:
-    #sensor_data = [read_temp(), read_humidity(), read_pressure()]
-    print("LED ON")
-    time.sleep(5)
-    client.publish("led1", "0")
-    print("LED OFF")
-    time.sleep(5)
-"""
-
-# Once we have told the client to connect, let the client object run itself
+	flag_ack=0
 
 
 #################################################################################################

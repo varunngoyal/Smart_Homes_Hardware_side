@@ -51,15 +51,15 @@ while True:
     print("LED OFF")
     time.sleep(5)
 """    
-    topic_name = 'actuator'
-    message = '{"company":"samsung","type":"led","time":"5","topic":"led1","message":"ON","from":"mobile"}'
+    topic_name = 'sensor'
+    message = '{"company":"samsung","type":"ldr","time":"5","topic":"301","message":"1000","from":"mobile","ack_val":"0","category":"sensor"}'
     #message = '{"company":"samsung","type":"led","time":"5","topic":"led1","start":"0","end":"0","message"="ON","from":"mobile"}'
 
     print("topic:", topic_name, "message:",message)
     client.publish(topic_name, message)
     input()
-    topic_name = 'actuator'
-    message = '{"company":"samsung","type":"led","time":"5","topic":"led1","message":"OFF","from":"mobile"}'
+    topic_name = 'sensor'
+    message = '{"company":"samsung","type":"temp","time":"5","topic":"401","message":"5","from":"mobile","ack_val":"0","category":"sensor"}'
     print("topic:", topic_name, "message:",message)
     client.publish(topic_name, message)
     input()
