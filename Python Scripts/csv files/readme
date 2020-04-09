@@ -1,4 +1,4 @@
-all files has format
+all files have format
 day1	start	day2	end	message	 from
 int	float	int 	float	int	int
 0-10	0-24	0-10	0-24	0-1023	0-4
