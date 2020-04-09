@@ -1,4 +1,5 @@
-import paho.mqtt.client as mqtt
+#https://stackoverflow.com/questions/7651064/create-an-isodate-with-pymongo
+#import paho.mqtt.client as mqtt
 import time
 import threading
 import configparser
@@ -55,18 +56,16 @@ for x in mydb.temp.find():
 		#print("i is ",i)
 
 		dt = datetime.datetime.utcfromtimestamp((10*3600*24*i + (int(start1))))
-		iso_format = dt.isoformat() + 'Z'
+		#iso_format = dt.isoformat() + 'Z'
 		#m11=("ISODate("+ iso_format+")")
-		y['start'] ="ISODate("+ iso_format+")"
+		#y['start'] ="ISODate("+ iso_format+")"
+		y['start'] = dt
 
 		dt = datetime.datetime.utcfromtimestamp((10*3600*24*i + (int(end1))))
-		iso_format = dt.isoformat() + 'Z'
-		y['end'] = "ISODate("+ iso_format+")"
+		#iso_format = dt.isoformat() + 'Z'
+		y['end'] = dt
 
 
 		#print(y)
 		k = mydb.temp1.insert_one(y)  ##dont know why it was inserting record twice
 		#print('Printing k', k)
-
-
-
